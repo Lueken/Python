@@ -1,0 +1,60 @@
+# Write a program to fetch the number of British persons listed by the API
+# culture = British
+# birthplace = birthplace
+# name = displayname
+
+# Students, complete the code below
+
+import requests
+
+def british_count():
+  url = 'https://api.harvardartmuseums.org/person?apikey=0458e14f-76b1-4223-82e0-90d20502c641'
+  query ={'q': 'culture: British','limit': 100}
+  response = requests.get(url, params=query)
+
+  #print(response)
+  response.ok
+
+  data = response.json()
+
+  def process_data(british_people):
+    return [{
+        'name': person['displayname'],
+        'culture': person['culture'],
+        'birthplace': person['birthplace']
+    } for person in british_people]
+
+  people = []
+
+  skip = 0
+  size = 100
+
+  query ={'q': 'culture: British','size': 100}
+  response = requests.get(url, params=query)
+  print('Querying {}'.format(response.url))
+
+  if(response.ok):
+    data = response.json()
+    info_data = data['info']
+  
+    total = info_data['totalrecords']
+    #print('There is a total of {} results to fetch'.format(total))
+
+    people = process_data(data['records'])
+    #print('{} results processed so far'.format(len(people)))
+  
+    skip = skip + size
+  
+    while skip < total:
+      query = {'size': size, 'skip': skip}
+      response = requests.get(url, query)
+      print('Querying {}'.format(response.url))
+      if(response.ok):
+        people = people + process_data(response.json()['records'])
+        #print('{} results processed so far'.format(len(people)))
+        skip = skip + size
+        #print('{} results returned'.format(len(people)))
+
+  return len(people)
+
+num_people = british_count()
